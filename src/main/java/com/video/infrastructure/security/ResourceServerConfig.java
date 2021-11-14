@@ -3,6 +3,7 @@ package com.video.infrastructure.security;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
+import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -10,12 +11,11 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
-import org.springframework.stereotype.Component;
 
 import com.nimbusds.jose.shaded.json.JSONArray;
 
-@Component
-public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+@Configuration
+public class ResourceServerConfig extends WebSecurityConfigurerAdapter {
 
     private static final String CLAIM_AUTHORITIES = "authorities";
 
