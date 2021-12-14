@@ -8,8 +8,8 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.video.application.exceptions.EntityObjectAlreadyExistsException;
 import com.video.application.exceptions.EntityObjectNotFoundException;
-import com.video.application.exceptions.VideoCreationFailedException;
 import com.video.application.genre.GenreService;
 import com.video.application.person.PersonService;
 import com.video.application.video.dto.AddVideoRequest;
@@ -36,8 +36,9 @@ public class VideoService {
         this.genreService = genreService;
     }
 
-    // TODO check if video already exists
-    public VideoDTO addVideo(AddVideoRequest addVideoRequest) throws VideoCreationFailedException {
+    public VideoDTO addVideo(AddVideoRequest addVideoRequest)
+            throws EntityObjectAlreadyExistsException {
+        checkIfVideoAlreadyExists(addVideoRequest);
         Video video = Video.create(
                 addVideoRequest.getMiniaturePath(),
                 addVideoRequest.getFilePath(),
@@ -49,6 +50,11 @@ public class VideoService {
                 getPersonsByIds(addVideoRequest.getDirectorsIds()),
                 getPersonsByIds(addVideoRequest.getScreenwritersIds()));
         return saveVideoAndMapToDTO(video);
+    }
+
+    public void deleteVideo(Long videoId) throws EntityObjectNotFoundException {
+        checkIfVideoExistsById(videoId);
+        videoRepository.deleteById(videoId);
     }
 
     public VideoBasicData getVideoBasicData(Long videoId) throws EntityObjectNotFoundException {
@@ -109,6 +115,18 @@ public class VideoService {
         return VideoPath.builder()
                 .path(getVideoById(videoId).getFilePath())
                 .build();
+    }
+
+    private void checkIfVideoAlreadyExists(AddVideoRequest addVideoRequest) throws EntityObjectAlreadyExistsException {
+        if (videoRepository.existsByFilePath(addVideoRequest.getFilePath())) {
+            throw new EntityObjectAlreadyExistsException(Video.class.getSimpleName());
+        }
+    }
+
+    private void checkIfVideoExistsById(Long videoId) throws EntityObjectNotFoundException {
+        if (!videoRepository.existsById(videoId)) {
+            throw new EntityObjectNotFoundException(Video.class.getSimpleName());
+        }
     }
 
     private VideoDTO saveVideoAndMapToDTO(Video video) {

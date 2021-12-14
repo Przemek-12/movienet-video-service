@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.video.application.exceptions.EntityObjectAlreadyExistsException;
 import com.video.application.exceptions.EntityObjectNotFoundException;
-import com.video.application.exceptions.VideoCreationFailedException;
 import com.video.application.video.VideoService;
 import com.video.application.video.dto.AddVideoRequest;
 import com.video.application.video.dto.VideoBasicData;
@@ -36,7 +36,7 @@ public class VideoController {
     public VideoDTO addVideo(@RequestBody AddVideoRequest addVideoRequest) {
         try {
             return videoService.addVideo(addVideoRequest);
-        } catch (VideoCreationFailedException e) {
+        } catch (EntityObjectAlreadyExistsException e) {
             throw new ResponseStatusException(e.getStatus(), e.getMessage(), e);
         }
     }
@@ -45,6 +45,15 @@ public class VideoController {
     public VideoDTO getVideoById(@RequestParam Long videoId) {
         try {
             return videoService.getVideoDTOById(videoId);
+        } catch (EntityObjectNotFoundException e) {
+            throw new ResponseStatusException(e.getStatus(), e.getMessage(), e);
+        }
+    }
+
+    @DeleteMapping
+    public void deleteVideo(@RequestParam Long videoId) {
+        try {
+            videoService.deleteVideo(videoId);
         } catch (EntityObjectNotFoundException e) {
             throw new ResponseStatusException(e.getStatus(), e.getMessage(), e);
         }
@@ -73,7 +82,7 @@ public class VideoController {
         return videoService.getVideosBasicData(titlePhrase);
     }
 
-    @PutMapping("/genre")
+    @PutMapping("/genre/add")
     public VideoDTO addGenre(Long videoId, Long genreId) {
         try {
             return videoService.addGenre(videoId, genreId);
@@ -82,7 +91,7 @@ public class VideoController {
         }
     }
 
-    @DeleteMapping("/genre")
+    @PutMapping("/genre/remove")
     public VideoDTO removeGenre(Long videoId, Long genreId) {
         try {
             return videoService.removeGenre(videoId, genreId);
@@ -91,7 +100,7 @@ public class VideoController {
         }
     }
 
-    @PutMapping("/cast")
+    @PutMapping("/cast/add")
     public VideoDTO addCastMember(Long videoId, Long personId) {
         try {
             return videoService.addCastMember(videoId, personId);
@@ -100,7 +109,7 @@ public class VideoController {
         }
     }
 
-    @DeleteMapping("/cast")
+    @PutMapping("/cast/remove")
     public VideoDTO removeCastMember(Long videoId, Long personId) {
         try {
             return videoService.removeCastMember(videoId, personId);
@@ -109,7 +118,7 @@ public class VideoController {
         }
     }
 
-    @PutMapping("/director")
+    @PutMapping("/director/add")
     public VideoDTO addDirector(Long videoId, Long personId) {
         try {
             return videoService.addDirector(videoId, personId);
@@ -118,7 +127,7 @@ public class VideoController {
         }
     }
 
-    @DeleteMapping("/director")
+    @PutMapping("/director/remove")
     public VideoDTO removeDirector(Long videoId, Long personId) {
         try {
             return videoService.removeDirector(videoId, personId);
@@ -127,7 +136,7 @@ public class VideoController {
         }
     }
 
-    @PutMapping("/screenwriter")
+    @PutMapping("/screenwriter/add")
     public VideoDTO addScreenwriter(Long videoId, Long personId) {
         try {
             return videoService.addScreenwriter(videoId, personId);
@@ -136,7 +145,7 @@ public class VideoController {
         }
     }
 
-    @DeleteMapping("/screenwriter")
+    @PutMapping("/screenwriter/remove")
     public VideoDTO removeScreenwriter(Long videoId, Long personId) {
         try {
             return videoService.removeScreenwriter(videoId, personId);

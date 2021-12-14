@@ -35,6 +35,11 @@ public class GenreService {
                 .orElseThrow(() -> new EntityObjectNotFoundException(Genre.class.getSimpleName()));
     }
 
+    public void deleteGenre(Long genreId) throws EntityObjectNotFoundException {
+        checkIfGenreExistsById(genreId);
+        genreRepository.deleteById(genreId);
+    }
+
     public List<GenreDTO> findAllDTO() {
         return genreRepository.findAll().stream().map(genre -> mapToGenrenDTO(genre)).collect(Collectors.toList());
     }
@@ -54,13 +59,17 @@ public class GenreService {
         }
     }
 
+    private void checkIfGenreExistsById(Long genreId) throws EntityObjectNotFoundException {
+        if (!genreRepository.existsById(genreId)) {
+            throw new EntityObjectNotFoundException(Genre.class.getSimpleName());
+        }
+    }
+
     private GenreDTO mapToGenrenDTO(Genre genre) {
         return GenreDTO.builder()
                 .id(genre.getId())
                 .name(genre.getName())
                 .build();
     }
-
-
 
 }

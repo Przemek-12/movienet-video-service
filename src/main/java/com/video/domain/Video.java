@@ -1,5 +1,6 @@
 package com.video.domain;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.persistence.Entity;
@@ -10,20 +11,15 @@ import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-
-import com.video.application.exceptions.VideoCreationFailedException;
 
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @Table(indexes = @Index(columnList = "title"))
 public class Video {
 
@@ -59,27 +55,38 @@ public class Video {
     
     @Getter
     @NonNull
-    @NotEmpty
     @ManyToMany(fetch = FetchType.LAZY)
-    private Set<Genre> genres;
+    private Set<Genre> genres = new HashSet<>();
 
     @Getter
     @NonNull
-    @NotEmpty
     @ManyToMany(fetch = FetchType.LAZY)
-    private Set<Person> cast;
+    private Set<Person> cast = new HashSet<>();
 
     @Getter
     @NonNull
-    @NotEmpty
     @ManyToMany(fetch = FetchType.LAZY)
-    private Set<Person> directors;
+    private Set<Person> directors = new HashSet<>();
 
     @Getter
     @NonNull
-    @NotEmpty
     @ManyToMany(fetch = FetchType.LAZY)
-    private Set<Person> screenwriters;
+    private Set<Person> screenwriters = new HashSet<>();
+
+    private Video(@NonNull String miniaturePath, @NonNull String filePath,
+            @NonNull String title, @NonNull Integer year, @NonNull String description,
+            @NonNull Set<Genre> genres, @NonNull Set<Person> cast,
+            @NonNull Set<Person> directors, @NonNull Set<Person> screenwriters) {
+        this.miniaturePath = miniaturePath;
+        this.filePath = filePath;
+        this.title = title;
+        this.year = year;
+        this.description = description;
+        this.genres.addAll(genres);
+        this.cast.addAll(cast);
+        this.directors.addAll(directors);
+        this.screenwriters.addAll(screenwriters);
+    }
 
     public static Video create(
             String miniaturePath, 
@@ -90,17 +97,7 @@ public class Video {
             Set<Genre> genres, 
             Set<Person> cast, 
             Set<Person> directors, 
-            Set<Person> screenwriters) throws VideoCreationFailedException {
-
-        if (genres.isEmpty()) {
-            throw new VideoCreationFailedException("Genres cannot be empty.");
-        } else if (cast.isEmpty()) {
-            throw new VideoCreationFailedException("Cast cannot be empty.");
-        } else if (directors.isEmpty()) {
-            throw new VideoCreationFailedException("Directors cannot be empty.");
-        } else if (screenwriters.isEmpty()) {
-            throw new VideoCreationFailedException("Screenwriters cannot be empty.");
-        }
+            Set<Person> screenwriters) {
 
         Video video = new Video(
                 miniaturePath,

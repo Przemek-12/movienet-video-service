@@ -35,6 +35,11 @@ public class PersonService {
                 .orElseThrow(() -> new EntityObjectNotFoundException(Person.class.getSimpleName()));
     }
 
+    public void deletePerson(Long personId) throws EntityObjectNotFoundException {
+        checkIfPersonExistsById(personId);
+        personRepository.deleteById(personId);
+    }
+
     public List<Person> findAllByIdsIn(Set<Long> ids) {
         return personRepository.findAllById(ids);
     }
@@ -51,6 +56,12 @@ public class PersonService {
     private void checkIfPersonAlreadyExists(AddPersonRequest request) throws EntityObjectAlreadyExistsException {
         if (personRepository.existsByFirstNameAndLastName(request.getFirstName(), request.getLastName())) {
             throw new EntityObjectAlreadyExistsException(Person.class.getSimpleName());
+        }
+    }
+
+    private void checkIfPersonExistsById(Long personId) throws EntityObjectNotFoundException {
+        if (!personRepository.existsById(personId)) {
+            throw new EntityObjectNotFoundException(Person.class.getSimpleName());
         }
     }
 

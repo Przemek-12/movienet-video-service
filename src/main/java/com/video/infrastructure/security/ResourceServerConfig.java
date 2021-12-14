@@ -1,22 +1,17 @@
 package com.video.infrastructure.security;
 
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.stream.Collectors;
 
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.nimbusds.jose.shaded.json.JSONArray;
 
@@ -42,6 +37,20 @@ public class ResourceServerConfig extends WebSecurityConfigurerAdapter {
                         .jwtAuthenticationConverter(jwtAuthenticationConverter()));
     }
 
+    @Override
+    public void configure(WebSecurity web) throws Exception {
+        web.ignoring()
+                .antMatchers(
+                        "/v2/api-docs",
+                        "/swagger-resources",
+                        "/swagger-resources/**",
+                        "/configuration/ui",
+                        "/configuration/security",
+                        "/swagger-ui.html",
+                        "/webjars/**",
+                        "/swagger-ui/**");
+    }
+
     private JwtAuthenticationConverter jwtAuthenticationConverter() {
         return new JwtAuthenticationConverter() {
             @Override
@@ -52,17 +61,6 @@ public class ResourceServerConfig extends WebSecurityConfigurerAdapter {
                         .collect(Collectors.toSet());
             }
         };
-    }
-
-    @Bean
-    CorsConfigurationSource corsConfigurationSource() {
-        final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        CorsConfiguration configuration = new CorsConfiguration().applyPermitDefaultValues();
-        configuration.setAllowedOrigins(Collections.singletonList("http://localhost:8005"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "DELETE", "OPTIONS"));
-
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
     }
 
 }
