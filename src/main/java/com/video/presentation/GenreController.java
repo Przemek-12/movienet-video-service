@@ -3,6 +3,7 @@ package com.video.presentation;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,6 +18,7 @@ import com.video.application.exceptions.EntityObjectNotFoundException;
 import com.video.application.genre.GenreService;
 import com.video.application.genre.dto.AddGenreRequest;
 import com.video.application.genre.dto.GenreDTO;
+import com.video.infrastructure.security.SecurityUtils;
 
 @RequestMapping("/genre")
 @RestController
@@ -30,6 +32,7 @@ public class GenreController {
     }
 
     @PostMapping
+    @Secured(SecurityUtils.ROLE_ADMIN)
     public GenreDTO addGenre(@RequestBody AddGenreRequest request) {
         try {
             return genreService.addGenre(request);
@@ -39,6 +42,7 @@ public class GenreController {
     }
 
     @DeleteMapping
+    @Secured(SecurityUtils.ROLE_ADMIN)
     public void deleteGenre(@RequestParam Long genreId) {
         try {
             genreService.deleteGenre(genreId);

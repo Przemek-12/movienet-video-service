@@ -11,10 +11,10 @@ import lombok.NonNull;
 public class AddVideoRequest {
 
     @NonNull
-    private String miniaturePath;
+    private String miniatureFileName;
 
     @NonNull
-    private String filePath;
+    private String fileName;
 
     @NonNull
     private String title;

@@ -3,6 +3,7 @@ package com.video.presentation;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,6 +18,7 @@ import com.video.application.exceptions.EntityObjectNotFoundException;
 import com.video.application.person.PersonService;
 import com.video.application.person.dto.AddPersonRequest;
 import com.video.application.person.dto.PersonDTO;
+import com.video.infrastructure.security.SecurityUtils;
 
 @RequestMapping("/person")
 @RestController
@@ -30,6 +32,7 @@ public class PersonController {
     }
 
     @PostMapping
+    @Secured(SecurityUtils.ROLE_ADMIN)
     public PersonDTO addPerson(@RequestBody AddPersonRequest request) {
         try {
             return personService.addPerson(request);
@@ -39,6 +42,7 @@ public class PersonController {
     }
 
     @DeleteMapping
+    @Secured(SecurityUtils.ROLE_ADMIN)
     public void deletePerson(@RequestParam Long personId) {
         try {
             personService.deletePerson(personId);

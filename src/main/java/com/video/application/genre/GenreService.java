@@ -41,12 +41,15 @@ public class GenreService {
     }
 
     public List<GenreDTO> findAllDTO() {
-        return genreRepository.findAll().stream().map(genre -> mapToGenrenDTO(genre)).collect(Collectors.toList());
+        return genreRepository.findAll().stream()
+                .map(genre -> mapToGenrenDTO(genre))
+                .collect(Collectors.toList());
     }
 
     public List<GenreDTO> findAllDTOByNamePhrase(String namePhrase) {
         return genreRepository.findAll(GenreSpecification.byNamePhrase(namePhrase)).stream()
-                .map(genre -> mapToGenrenDTO(genre)).collect(Collectors.toList());
+                .map(genre -> mapToGenrenDTO(genre))
+                .collect(Collectors.toList());
     }
 
     public List<Genre> findAllByIdsIn(Set<Long> ids) {

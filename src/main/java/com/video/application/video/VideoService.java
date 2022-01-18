@@ -6,11 +6,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.video.application.exceptions.EntityObjectAlreadyExistsException;
 import com.video.application.exceptions.EntityObjectNotFoundException;
 import com.video.application.genre.GenreService;
+import com.video.application.kafka.KafkaMessageProducer;
 import com.video.application.person.PersonService;
 import com.video.application.video.dto.AddVideoRequest;
 import com.video.application.video.dto.VideoBasicData;
@@ -21,27 +23,36 @@ import com.video.domain.Person;
 import com.video.domain.Video;
 import com.video.domain.repository.VideoRepository;
 import com.video.domain.specification.VideoSpecification;
+import com.video.infrastructure.kafka.KafkaTopics;
 
 @Service
 public class VideoService {
 
+    @Value("${video.files.folder.path}")
+    private String videoPath;
+
+    @Value("${video.miniatures.files.folder.path}")
+    private String videoMiniaturesPath;
+
     private final VideoRepository videoRepository;
     private final PersonService personService;
     private final GenreService genreService;
+    private final KafkaMessageProducer kafkaMessageProducer;
 
     @Autowired
-    public VideoService(VideoRepository videoRepository, PersonService personService, GenreService genreService) {
+    public VideoService(VideoRepository videoRepository, PersonService personService, GenreService genreService,
+            KafkaMessageProducer kafkaMessageProducer) {
         this.videoRepository = videoRepository;
         this.personService = personService;
         this.genreService = genreService;
+        this.kafkaMessageProducer = kafkaMessageProducer;
     }
 
-    public VideoDTO addVideo(AddVideoRequest addVideoRequest)
-            throws EntityObjectAlreadyExistsException {
+    public VideoDTO addVideo(AddVideoRequest addVideoRequest) throws EntityObjectAlreadyExistsException {
         checkIfVideoAlreadyExists(addVideoRequest);
         Video video = Video.create(
-                addVideoRequest.getMiniaturePath(),
-                addVideoRequest.getFilePath(),
+                getVideoMiniatureFinalPath(addVideoRequest.getMiniatureFileName()),
+                getVideoFinalPath(addVideoRequest.getFileName()),
                 addVideoRequest.getTitle(),
                 addVideoRequest.getYear(),
                 addVideoRequest.getDescription(),
@@ -52,9 +63,14 @@ public class VideoService {
         return saveVideoAndMapToDTO(video);
     }
 
+    public boolean videoExistsById(Long videoId) {
+        return videoRepository.existsById(videoId);
+    }
+
     public void deleteVideo(Long videoId) throws EntityObjectNotFoundException {
         checkIfVideoExistsById(videoId);
         videoRepository.deleteById(videoId);
+        kafkaMessageProducer.sendMessage(KafkaTopics.VIDEO_DELETED, String.valueOf(videoId));
     }
 
     public VideoBasicData getVideoBasicData(Long videoId) throws EntityObjectNotFoundException {
@@ -117,8 +133,12 @@ public class VideoService {
                 .build();
     }
 
+    public String getVideoMiniaturePath(Long videoId) throws EntityObjectNotFoundException {
+        return getVideoById(videoId).getMiniaturePath();
+    }
+
     private void checkIfVideoAlreadyExists(AddVideoRequest addVideoRequest) throws EntityObjectAlreadyExistsException {
-        if (videoRepository.existsByFilePath(addVideoRequest.getFilePath())) {
+        if (videoRepository.existsByFilePath(getVideoFinalPath(addVideoRequest.getFileName()))) {
             throw new EntityObjectAlreadyExistsException(Video.class.getSimpleName());
         }
     }
@@ -130,7 +150,9 @@ public class VideoService {
     }
 
     private VideoDTO saveVideoAndMapToDTO(Video video) {
-        return mapToVideoDTO(videoRepository.save(video));
+        Video savedVideo = videoRepository.save(video);
+        kafkaMessageProducer.sendMessage(KafkaTopics.VIDEO_ADDED, String.valueOf(savedVideo.getId()));
+        return mapToVideoDTO(savedVideo);
     }
 
     private Video getVideoById(Long id) throws EntityObjectNotFoundException {
@@ -171,6 +193,18 @@ public class VideoService {
                 .year(video.getYear())
                 .description(video.getDescription())
                 .build();
+    }
+
+    private String getVideoFinalPath(String fileName) {
+        return formatPath(videoPath + "\\" + fileName);
+    }
+
+    private String getVideoMiniatureFinalPath(String fileName) {
+        return formatPath(videoMiniaturesPath + "\\" + fileName);
+    }
+
+    private String formatPath(String path) {
+        return path.replaceAll("\\\\", "\\\\\\\\");
     }
 
 }

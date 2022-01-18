@@ -21,4 +21,5 @@ public class VideoBasicData {
 
     @NonNull
     private String description;
+
 }
