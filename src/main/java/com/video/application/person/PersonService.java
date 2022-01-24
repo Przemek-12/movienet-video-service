@@ -45,12 +45,15 @@ public class PersonService {
     }
 
     public List<PersonDTO> findAllDTO() {
-        return personRepository.findAll().stream().map(person -> mapToPersonDTO(person)).collect(Collectors.toList());
+        return personRepository.findAll().stream()
+                .map(person -> mapToPersonDTO(person))
+                .collect(Collectors.toList());
     }
 
     public List<PersonDTO> findAllDTOByNamePhrase(String namePhrase) {
         return personRepository.findAll(PersonSpecification.byFullNamePhrase(namePhrase)).stream()
-                .map(person -> mapToPersonDTO(person)).collect(Collectors.toList());
+                .map(person -> mapToPersonDTO(person))
+                .collect(Collectors.toList());
     }
 
     private void checkIfPersonAlreadyExists(AddPersonRequest request) throws EntityObjectAlreadyExistsException {

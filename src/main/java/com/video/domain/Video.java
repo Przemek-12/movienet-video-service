@@ -3,6 +3,7 @@ package com.video.domain;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -31,11 +32,13 @@ public class Video {
     @NonNull
     @NotNull
     @Getter
+    @Column(unique = true)
     private String miniaturePath;
 
     @NonNull
     @NotNull
     @Getter
+    @Column(unique = true)
     private String filePath;
 
     @NonNull

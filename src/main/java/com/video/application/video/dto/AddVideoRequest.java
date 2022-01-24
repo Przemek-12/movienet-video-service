@@ -3,11 +3,13 @@ package com.video.application.video.dto;
 import java.util.Set;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NonNull;
 
 @Getter
 @AllArgsConstructor
+@Builder
 public class AddVideoRequest {
 
     @NonNull

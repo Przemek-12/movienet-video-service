@@ -7,7 +7,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = { "com.video" })
 @EnableDiscoveryClient
 @EnableFeignClients
 @EnableWebSecurity

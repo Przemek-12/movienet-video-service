@@ -40,7 +40,9 @@ public class VideoService {
     private final KafkaMessageProducer kafkaMessageProducer;
 
     @Autowired
-    public VideoService(VideoRepository videoRepository, PersonService personService, GenreService genreService,
+    public VideoService(VideoRepository videoRepository,
+            PersonService personService,
+            GenreService genreService,
             KafkaMessageProducer kafkaMessageProducer) {
         this.videoRepository = videoRepository;
         this.personService = personService;
@@ -50,17 +52,11 @@ public class VideoService {
 
     public VideoDTO addVideo(AddVideoRequest addVideoRequest) throws EntityObjectAlreadyExistsException {
         checkIfVideoAlreadyExists(addVideoRequest);
-        Video video = Video.create(
-                getVideoMiniatureFinalPath(addVideoRequest.getMiniatureFileName()),
-                getVideoFinalPath(addVideoRequest.getFileName()),
-                addVideoRequest.getTitle(),
-                addVideoRequest.getYear(),
-                addVideoRequest.getDescription(),
-                getGenresByIds(addVideoRequest.getGenresIds()),
-                getPersonsByIds(addVideoRequest.getCastIds()),
-                getPersonsByIds(addVideoRequest.getDirectorsIds()),
-                getPersonsByIds(addVideoRequest.getScreenwritersIds()));
-        return saveVideoAndMapToDTO(video);
+        Video video = buildVideo(addVideoRequest);
+        VideoDTO videoDTO = saveVideoAndMapToDTO(video);
+        kafkaMessageProducer.sendMessage(KafkaTopics.VIDEO_ADDED,
+                String.valueOf(videoDTO.getBasicData().getId()));
+        return videoDTO;
     }
 
     public boolean videoExistsById(Long videoId) {
@@ -74,8 +70,7 @@ public class VideoService {
     }
 
     public VideoBasicData getVideoBasicData(Long videoId) throws EntityObjectNotFoundException {
-        return mapToVideoBasicData(videoRepository.findById(videoId)
-                .orElseThrow(() -> new EntityObjectNotFoundException(Video.class.getSimpleName())));
+        return mapToVideoBasicData(getVideoById(videoId));
     }
 
     public List<VideoBasicData> getVideosBasicData(String titlePhrase) {
@@ -137,6 +132,19 @@ public class VideoService {
         return getVideoById(videoId).getMiniaturePath();
     }
 
+    private Video buildVideo(AddVideoRequest addVideoRequest) {
+        return Video.create(
+                getVideoMiniatureFinalPath(addVideoRequest.getMiniatureFileName()),
+                getVideoFinalPath(addVideoRequest.getFileName()),
+                addVideoRequest.getTitle(),
+                addVideoRequest.getYear(),
+                addVideoRequest.getDescription(),
+                getGenresByIds(addVideoRequest.getGenresIds()),
+                getPersonsByIds(addVideoRequest.getCastIds()),
+                getPersonsByIds(addVideoRequest.getDirectorsIds()),
+                getPersonsByIds(addVideoRequest.getScreenwritersIds()));
+    }
+
     private void checkIfVideoAlreadyExists(AddVideoRequest addVideoRequest) throws EntityObjectAlreadyExistsException {
         if (videoRepository.existsByFilePath(getVideoFinalPath(addVideoRequest.getFileName()))) {
             throw new EntityObjectAlreadyExistsException(Video.class.getSimpleName());
@@ -151,7 +159,6 @@ public class VideoService {
 
     private VideoDTO saveVideoAndMapToDTO(Video video) {
         Video savedVideo = videoRepository.save(video);
-        kafkaMessageProducer.sendMessage(KafkaTopics.VIDEO_ADDED, String.valueOf(savedVideo.getId()));
         return mapToVideoDTO(savedVideo);
     }
 
